@@ -36,6 +36,7 @@ pipeline {
             }
         }
 
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar') {
@@ -55,6 +56,32 @@ pipeline {
             steps {
                 withMaven(globalMavenSettingsConfig: 'global-settings', jdk: 'jdk17', maven: 'maven3', mavenSettingsConfig: '', traceability: true) {
                     sh "mvn deploy"
+                }
+            }
+        }
+
+        stage('Docker Build & Tag') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
+                        sh "docker build -t rochanahuel/newpipeline:latest ."
+                    }
+                }
+            }
+        }
+
+        stage('Trivy Image Scan') {
+            steps {
+                sh "trivy image --format table -o image.html rochanahuel/newpipeline:latest"
+            }
+        }
+
+        stage('Docker Push Image') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
+                        sh "docker push rochanahuel/newpipeline:latest"
+                    }
                 }
             }
         }

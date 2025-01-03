@@ -7,10 +7,10 @@ provider "aws" {
   skip_metadata_api_check     = true
 
   endpoints {
-    ec2            = "http://localhost:4566"
-    iam            = "http://localhost:4566"
-    sts            = "http://localhost:4566"
-    vpc            = "http://localhost:4566"
+    ec2            = "http://172.24.126.69:4566"
+    iam            = "http://172.24.126.69:4566"
+    sts            = "http://172.24.126.69:4566"
+    vpc            = "http://172.24.126.69:4566"
   }
 }
 

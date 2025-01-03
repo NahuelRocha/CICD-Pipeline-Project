@@ -85,5 +85,47 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy Infrastructure') {
+            steps {
+                dir('terraform') {
+                    sh '''
+                        terraform init
+                        terraform apply -auto-approve
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy To Kubernetes') {
+            steps {
+                withKubeConfig(caCertificate: '',
+                             clusterName: 'minikube',
+                             contextName: '',
+                             credentialsId: 'k8-cred',
+                             namespace: 'default',
+                             serverUrl: 'https://127.0.0.1:32771') {
+                    sh 'kubectl apply -f deployment-service.yml'
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                withKubeConfig(caCertificate: '',
+                             clusterName: 'minikube',
+                             contextName: '',
+                             credentialsId: 'k8-cred',
+                             namespace: 'default',
+                             serverUrl: 'https://127.0.0.1:32771') {
+                    sh '''
+                        kubectl get pods -n default
+                        kubectl get svc -n default
+                        kubectl rollout status deployment/pipeline-deployment
+                    '''
+                }
+            }
+        }
+
     }
 }
